@@ -1,6 +1,9 @@
 $(function() {
   var canvas = $("canvas")[0],
       ctx = canvas.getContext("2d");
+  var assets = {};
+  assets.shot = newImage("img_shot.png");
+  assets.man = newImage("img_man.png");
   var settings = {
     canvas_width: canvas.clientWidth,
     canvas_height: canvas.clientHeight,
@@ -238,20 +241,25 @@ $(function() {
     }
   };
   var draw_hud = function() {
-    var font_style = " 12px monospace";
+    var font_style = " 12px monospace",
+        y = settings.canvas_height - 15;
     ctx.font = "normal" + font_style;
     ctx.textAlign = "left";
     ctx.fillStyle = "white";
-    ctx.fillText("SCORE:", 10, settings.canvas_height - 15);
+    ctx.fillText("MANS:", 10, y);
+    ctx.fillText("SCORE:", 120, y);
+    for (var i = 0; i < player.lives; i++) {
+      ctx.drawImage(assets.man, i * 18 + 51, y - 11);
+    }
     ctx.font = "bold" + font_style;
     ctx.fillStyle = "#ffff00";
-    ctx.fillText(player.score, 55, settings.canvas_height - 15);
+    ctx.fillText(player.score, 165, y);
   };
   var draw_shot = function(x, y) {
     ctx.beginPath();
     ctx.fillStyle = "#ae1f23";
     ctx.moveTo(x, y);
-    ctx.fillRect(x, y, 10, 2);
+    ctx.drawImage(assets.shot, x, y);
   };
   var draw_baddie_shot = function(s) {
     ctx.beginPath();
@@ -300,12 +308,10 @@ $(function() {
   var title_screen = (function() {
     ctx.clearRect(0, 0, settings.canvas_width, settings.canvas_height);
     draw_bg(function() {
-      var img_1 = new Image(),
-          img_2 = new Image(),
+      var img_1 = newImage("img_defender-title_y.png"),
+          img_2 = newImage("img_defender-title_b.png"),
           timeouts = [],
           cw = settings.canvas_width;
-      img_1.src = "images/img_defender-title_y.png";
-      img_2.src = "images/img_defender-title_b.png";
       img_1.onload = function() {
         img_1.x_pos = (cw - img_1.width) / 2;
         img_1.y_pos = (settings.canvas_height - img_1.height) / 2;
@@ -373,4 +379,10 @@ $(function() {
       });
     });
   };
+
+  function newImage(src) {
+    var img = new Image();
+    img.src = "images/" + src;
+    return img;
+  }
 });
