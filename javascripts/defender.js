@@ -304,10 +304,10 @@ $(function() {
           timeouts = [],
           cw = settings.canvas_width;
       img_1.src = "images/img_defender-title_y.png";
-      img_1.x_pos = (cw - img_1.width) / 2;
-      img_1.y_pos = (settings.canvas_height - img_1.height) / 2;
       img_2.src = "images/img_defender-title_b.png";
       img_1.onload = function() {
+        img_1.x_pos = (cw - img_1.width) / 2;
+        img_1.y_pos = (settings.canvas_height - img_1.height) / 2;
         ctx.drawImage(img_1, img_1.x_pos, img_1.y_pos);
         img_2.onload = function() {
           ctx.font = "normal 36px DINPro";
