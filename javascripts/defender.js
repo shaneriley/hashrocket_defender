@@ -8,7 +8,9 @@ $(function() {
     spawn_rate : 2000,
     default_baddie_speed : 3,
     default_shot_speed : 30,
-    pause: false
+    pause: false,
+    score: 0,
+    lives: 3
   };
   var hr = {
     x : 20,
@@ -103,6 +105,7 @@ $(function() {
       draw_baddie_shot(bs);
     }
     draw_hr();
+    draw_hud();
   }, 15);
   var move_hr = function() {
     if(hr.dead) {return;}
@@ -195,6 +198,7 @@ $(function() {
   };
   var kill_baddie = function(i) {
     var b = baddies[i];
+    settings.score += 100;
     b.color = "#cc0000";
     b.speed = 0;
     setTimeout(function() {
@@ -205,10 +209,19 @@ $(function() {
     ctx.beginPath();
     ctx.fillStyle = "#000000";
     ctx.moveTo(0, 0);
-    //ctx.fillRect(0, 0, settings.canvas_width, settings.canvas_height);
     var img = document.createElement("img");
     img.setAttribute("src", "images/img_stars.jpg");
     ctx.drawImage(img, 0, 0);
+  };
+  var draw_hud = function() {
+    var font_style = " 12px monospace";
+    ctx.font = "normal" + font_style;
+    ctx.textAlign = "left";
+    ctx.fillStyle = "white";
+    ctx.fillText("SCORE:", 10, settings.canvas_height - 15);
+    ctx.font = "bold" + font_style;
+    ctx.fillStyle = "#ffff00";
+    ctx.fillText(settings.score, 55, settings.canvas_height - 15);
   };
   var draw_shot = function(x, y) {
     ctx.beginPath();
