@@ -235,13 +235,16 @@ $(function() {
     img.src = "images/img_stars.jpg";
     if (cb) {
       img.onload = function() {
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(img, settings.bg_x, 0);
+        ctx.drawImage(img, settings.bg_x + settings.canvas_width, 0);
         cb();
       };
     }
     else {
-      ctx.drawImage(img, 0, 0);
+      ctx.drawImage(img, settings.bg_x, 0);
+      ctx.drawImage(img, settings.bg_x + settings.canvas_width, 0);
     }
+    settings.bg_x = settings.bg_x > -settings.canvas_width ? settings.bg_x - 1 : 0;
   };
   var draw_hud = function() {
     var font_style = " 12px monospace",
