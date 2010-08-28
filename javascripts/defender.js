@@ -205,7 +205,10 @@ $(function() {
     ctx.beginPath();
     ctx.fillStyle = "#000000";
     ctx.moveTo(0, 0);
-    ctx.fillRect(0, 0, settings.canvas_width, settings.canvas_height);
+    //ctx.fillRect(0, 0, settings.canvas_width, settings.canvas_height);
+    var img = document.createElement("img");
+    img.setAttribute("src", "images/img_stars.jpg");
+    ctx.drawImage(img, 0, 0);
   };
   var draw_shot = function(x, y) {
     ctx.beginPath();
