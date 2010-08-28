@@ -14,7 +14,7 @@ $(function() {
   };
   var hr = {
     x : 20,
-    y : 20,
+    y : 0,
     speed : 8,
     width : 74,
     height: 68,
@@ -23,6 +23,7 @@ $(function() {
     shot_fired : false,
     shots : []
   };
+  hr.y = settings.canvas_height / 2 - hr.height / 2;
   var baddie = {
     x : settings.canvas_width + 20,
     y : 0,
@@ -52,61 +53,73 @@ $(function() {
       ctx.fillText("PAUSED", settings.canvas_width / 2, settings.canvas_height / 2);
     }
   };
-  setInterval(function() {
-    if(settings.pause) { return; }
-    move_hr();
+  var run = function() {
+    $(document).unbind("keypress.start_game");
+    setInterval(function() {
+      if(settings.pause) { return; }
+      move_hr();
 
-    if(!hr.shot_fired) {
-      if (key[32] && !hr.dead) {
-        hr.shoot();
-      }
-    }
-    if(settings.spawn_baddie) {
-      if(!hr.dead) {
-        var newBaddie = $.extend({}, baddie);
-        baddie.y = Math.random() * settings.canvas_height;
-        baddie.shot_interval = Math.random() * 4000 + 1000;
-        baddie.shot_initial_delay = Math.random() * 1500 + 1000;
-        baddies.push(newBaddie);
-        settings.spawn_baddie = false;
-        setTimeout(function() { settings.spawn_baddie = true; }, settings.spawn_rate);
-      }
-    }
-
-    ctx.clearRect(0, 0, settings.canvas_width, settings.canvas_height);
-    draw_bg();
-    check_collisions();
-    var i = 0;
-    for(i=0; i<hr.shots.length; i++) {
-      var s = hr.shots[i];
-      if(s.x > settings.canvas_width) {
-        hr.shots.splice(i, 1);
-      } else {
-        s.x += s.speed;
-        draw_shot(s.x, s.y);
-      }
-    }
-    for(i=0; i<baddies.length; i++) {
-      var b = baddies[i];
-      if(b.x < 0) {
-        baddies.splice(i, 1);
-      } else {
-        if(!hr.dead) {
-          b.x -= b.speed;
-          baddie_shoot(b);
-          var j;
+      if(!hr.shot_fired) {
+        if (key[32] && !hr.dead) {
+          hr.shoot();
         }
-        draw_baddie(b);
       }
-    }
-    for(j=0; j<baddie_shots.length; j++) {
-      var bs = baddie_shots[j];
-      bs.x -= bs.speed;
-      draw_baddie_shot(bs);
-    }
-    draw_hr();
-    draw_hud();
-  }, 15);
+      if(settings.spawn_baddie) {
+        if(!hr.dead) {
+          var newBaddie = $.extend({}, baddie);
+          baddie.y = Math.random() * settings.canvas_height;
+          console.log(baddie.y);
+          if (baddie.y > settings.canvas_height - hr.height / 2) {
+            baddie.y -= hr.height / 2;
+            console.log("Too much " + baddie.y);
+          }
+          if (baddie.y < hr.height / 2) {
+            baddie.y += hr.height / 2;
+            console.log("Too little " + baddie.y);
+          }
+          baddie.shot_interval = Math.random() * 4000 + 1000;
+          baddie.shot_initial_delay = Math.random() * 1500 + 1000;
+          baddies.push(newBaddie);
+          settings.spawn_baddie = false;
+          setTimeout(function() { settings.spawn_baddie = true; }, settings.spawn_rate);
+        }
+      }
+
+      ctx.clearRect(0, 0, settings.canvas_width, settings.canvas_height);
+      draw_bg();
+      check_collisions();
+      var i = 0;
+      for(i=0; i<hr.shots.length; i++) {
+        var s = hr.shots[i];
+        if(s.x > settings.canvas_width) {
+          hr.shots.splice(i, 1);
+        } else {
+          s.x += s.speed;
+          draw_shot(s.x, s.y);
+        }
+      }
+      for(i=0; i<baddies.length; i++) {
+        var b = baddies[i];
+        if(b.x < 0) {
+          baddies.splice(i, 1);
+        } else {
+          if(!hr.dead) {
+            b.x -= b.speed;
+            baddie_shoot(b);
+            var j;
+          }
+          draw_baddie(b);
+        }
+      }
+      for(j=0; j<baddie_shots.length; j++) {
+        var bs = baddie_shots[j];
+        bs.x -= bs.speed;
+        draw_baddie_shot(bs);
+      }
+      draw_hr();
+      draw_hud();
+    }, 15);
+  };
   var move_hr = function() {
     if(hr.dead) {return;}
     if(hr.x > 0) {
@@ -180,20 +193,19 @@ $(function() {
     hr.dead = true;
     setTimeout(function() {
       hr.x = 20;
-      hr.y = settings.canvas_height/2 - hr.height/2;
+      hr.y = settings.canvas_height / 2 - hr.height / 2;
       hr.dead = false;
     }, 1050);
     var original_y = hr.y;
-    var i = 0;
-    for(i=0; i<10; i++) {
+    for(var i = 0; i < 10; i++) {
       setTimeout(function() {
         hr.y = -500;
         draw_hr();
-      }, 100*i);
+      }, 100 * i);
       setTimeout(function() {
         hr.y = original_y;
         draw_hr();
-      }, (100*i)+50);
+      }, (100 * i) + 50);
     }
   };
   var kill_baddie = function(i) {
@@ -209,9 +221,18 @@ $(function() {
     ctx.beginPath();
     ctx.fillStyle = "#000000";
     ctx.moveTo(0, 0);
-    var img = document.createElement("img");
-    img.setAttribute("src", "images/img_stars.jpg");
-    ctx.drawImage(img, 0, 0);
+    var img = new Image();
+    var cb = arguments[0];
+    img.src = "images/img_stars.jpg";
+    if (cb) {
+      img.onload = function() {
+        ctx.drawImage(img, 0, 0);
+        cb();
+      };
+    }
+    else {
+      ctx.drawImage(img, 0, 0);
+    }
   };
   var draw_hud = function() {
     var font_style = " 12px monospace";
@@ -273,4 +294,47 @@ $(function() {
     ctx.lineTo(x -= 14, y -= 14);
     ctx.fill();
   };
+  var title_screen = (function() {
+    ctx.clearRect(0, 0, settings.canvas_width, settings.canvas_height);
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, settings.canvas_width, settings.canvas_height);
+    draw_bg(function() {
+      var img_1 = new Image(),
+          img_2 = new Image(),
+          timeouts = [],
+          cw = settings.canvas_width;
+      img_1.src = "images/img_defender-title_y.png";
+      img_1.x_pos = (cw - img_1.width) / 2;
+      img_1.y_pos = (settings.canvas_height - img_1.height) / 2;
+      img_2.src = "images/img_defender-title_b.png";
+      img_1.onload = function() {
+        ctx.drawImage(img_1, img_1.x_pos, img_1.y_pos);
+        img_2.onload = function() {
+          ctx.font = "normal 36px DINPro";
+          ctx.fillStyle = "white";
+          ctx.textAlign = "center";
+          ctx.fillText("HASHROCKET", cw / 2, img_1.y_pos - 25);
+          ctx.font = "normal 18px DINPro";
+          ctx.fillText("Press Enter or Return", cw / 2, img_1.y_pos + img_1.height + 40);
+          $(document).bind("keypress.start_game", function(e) {
+            if (e.keyCode === 13) {
+              for (var i in timeouts) {
+                clearTimeout(timeouts[i]);
+              }
+              run();
+            }
+          });
+          var defender_y = function() {
+            ctx.drawImage(img_1, img_1.x_pos, img_1.y_pos);
+            timeouts.push(setTimeout(defender_b, 500));
+          };
+          var defender_b = function() {
+            ctx.drawImage(img_2, img_1.x_pos, img_1.y_pos);
+            timeouts.push(setTimeout(defender_y, 500));
+          };
+          defender_y();
+        };
+      };
+    });
+  })();
 });
