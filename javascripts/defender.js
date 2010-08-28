@@ -12,6 +12,7 @@ $(function() {
     score: 0,
     lives: 3
   };
+  var player = $.extend({}, settings);
   var hr = {
     x : 20,
     y : 0,
@@ -191,12 +192,12 @@ $(function() {
   };
   var kill_hr = function() {
     hr.dead = true;
-    settings.lives--;
+    player.lives--;
     setTimeout(function() {
       hr.x = 20;
       hr.y = settings.canvas_height / 2 - hr.height / 2;
       hr.dead = false;
-      settings.lives < 0 ? gameOver() : 1;
+      player.lives < 0 ? gameOver() : 1;
     }, 1050);
     var original_y = hr.y;
     for(var i = 0; i < 10; i++) {
@@ -212,7 +213,7 @@ $(function() {
   };
   var kill_baddie = function(i) {
     var b = baddies[i];
-    settings.score += 100;
+    player.score += 100;
     b.color = "#cc0000";
     b.speed = 0;
     setTimeout(function() {
@@ -244,7 +245,7 @@ $(function() {
     ctx.fillText("SCORE:", 10, settings.canvas_height - 15);
     ctx.font = "bold" + font_style;
     ctx.fillStyle = "#ffff00";
-    ctx.fillText(settings.score, 55, settings.canvas_height - 15);
+    ctx.fillText(player.score, 55, settings.canvas_height - 15);
   };
   var draw_shot = function(x, y) {
     ctx.beginPath();
@@ -342,16 +343,26 @@ $(function() {
     ctx.clearRect(0, 0, settings.canvas_width, settings.canvas_height);
     draw_bg(function() {
       var cx = settings.canvas_width / 2;
-      ctx.font = "normal 48px DINPro";
+      var fontStyle = function(size) {
+        return "normal " + size + " DINPro";
+      };
+      ctx.font = fontStyle("48px");
       ctx.fillStyle = "white";
       ctx.textAlign = "center";
-      ctx.fillText("GAME OVER", cx, 300);
-      ctx.font = "normal 22px DINPro";
-      ctx.fillText("Score: " + settings.score, cx, 350);
-      ctx.font = "normal 18px DINPro";
-      ctx.fillText("Press Enter or Return to play again", cx, 400);
-      settings.score = 0;
-      settings.lives = 3;
+      ctx.fillText("GAME OVER", cx, 250);
+      ctx.font = fontStyle("22px");
+      ctx.fillStyle = "#00ffff";
+      ctx.textAlign = "left";
+      ctx.fillText("Score:", cx - 125, 300);
+      ctx.fillStyle = "#33cc33";
+      ctx.textAlign = "right";
+      ctx.font = fontStyle("40px");
+      ctx.fillText(player.score, cx + 125, 307);
+      ctx.textAlign = "center";
+      ctx.font = fontStyle("18px");
+      ctx.fillStyle = "white";
+      ctx.fillText("Press Enter or Return to play again", cx, 350);
+      player = $.extend({}, settings);
       hr.shots = [];
       baddies = [];
       baddie_shots = [];
