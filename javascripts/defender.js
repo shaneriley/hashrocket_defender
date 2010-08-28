@@ -55,7 +55,7 @@ $(function() {
   };
   var run = function() {
     $(document).unbind("keypress.start_game");
-    setInterval(function() {
+    settings.running_game = setInterval(function() {
       if(settings.pause) { return; }
       move_hr();
 
@@ -68,14 +68,14 @@ $(function() {
         if(!hr.dead) {
           var newBaddie = $.extend({}, baddie);
           baddie.y = Math.random() * settings.canvas_height;
-          console.log(baddie.y);
+          //console.log(baddie.y);
           if (baddie.y > settings.canvas_height - hr.height / 2) {
             baddie.y -= hr.height / 2;
-            console.log("Too much " + baddie.y);
+            //console.log("Too much " + baddie.y);
           }
           if (baddie.y < hr.height / 2) {
             baddie.y += hr.height / 2;
-            console.log("Too little " + baddie.y);
+            //console.log("Too little " + baddie.y);
           }
           baddie.shot_interval = Math.random() * 4000 + 1000;
           baddie.shot_initial_delay = Math.random() * 1500 + 1000;
@@ -191,10 +191,12 @@ $(function() {
   };
   var kill_hr = function() {
     hr.dead = true;
+    settings.lives--;
     setTimeout(function() {
       hr.x = 20;
       hr.y = settings.canvas_height / 2 - hr.height / 2;
       hr.dead = false;
+      settings.lives < 0 ? gameOver() : 1;
     }, 1050);
     var original_y = hr.y;
     for(var i = 0; i < 10; i++) {
@@ -296,8 +298,6 @@ $(function() {
   };
   var title_screen = (function() {
     ctx.clearRect(0, 0, settings.canvas_width, settings.canvas_height);
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, settings.canvas_width, settings.canvas_height);
     draw_bg(function() {
       var img_1 = new Image(),
           img_2 = new Image(),
@@ -337,4 +337,29 @@ $(function() {
       };
     });
   })();
+  var gameOver = function() {
+    clearInterval(settings.running_game);
+    ctx.clearRect(0, 0, settings.canvas_width, settings.canvas_height);
+    draw_bg(function() {
+      var cx = settings.canvas_width / 2;
+      ctx.font = "normal 48px DINPro";
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+      ctx.fillText("GAME OVER", cx, 300);
+      ctx.font = "normal 22px DINPro";
+      ctx.fillText("Score: " + settings.score, cx, 350);
+      ctx.font = "normal 18px DINPro";
+      ctx.fillText("Press Enter or Return to play again", cx, 400);
+      settings.score = 0;
+      settings.lives = 3;
+      hr.shots = [];
+      baddies = [];
+      baddie_shots = [];
+      $(document).bind("keypress.start_game", function(e) {
+        if (e.keyCode === 13) {
+          run();
+        }
+      });
+    });
+  };
 });
