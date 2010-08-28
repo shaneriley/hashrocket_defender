@@ -44,6 +44,10 @@ $(function() {
     key[e.which] = (e.type == 'keydown');
     if((e.type == 'keydown') && (e.keyCode == 80)) {
       settings.pause = !settings.pause;
+      ctx.font = "bold 26px monospace";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "white";
+      ctx.fillText("PAUSED", settings.canvas_width / 2, settings.canvas_height / 2);
     }
   };
   setInterval(function() {
