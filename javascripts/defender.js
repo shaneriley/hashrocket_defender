@@ -4,6 +4,7 @@ $(function() {
   var assets = {};
   assets.shot = newImage("img_shot.png");
   assets.man = newImage("img_man.png");
+  assets.enemies = [newImage("img_ship_1.png"), newImage("img_ship_2.png")];
   var settings = {
     canvas_width: canvas.clientWidth,
     canvas_height: canvas.clientHeight,
@@ -32,9 +33,10 @@ $(function() {
     x : settings.canvas_width + 20,
     y : 0,
     speed : settings.default_baddie_speed,
-    width: 20,
-    height: 20,
+    width: 30,
+    height: 30,
     color: "#00ff00",
+    image: randomEnemySprite(),
     shot_interval : 1500,
     shot_fired : true,
     shot_initial_delay : 500
@@ -83,6 +85,7 @@ $(function() {
           }
           baddie.shot_interval = Math.random() * 4000 + 1000;
           baddie.shot_initial_delay = Math.random() * 1500 + 1000;
+          baddie.image = randomEnemySprite();
           baddies.push(newBaddie);
           settings.spawn_baddie = false;
           setTimeout(function() { settings.spawn_baddie = true; }, settings.spawn_rate);
@@ -271,7 +274,10 @@ $(function() {
     ctx.beginPath();
     ctx.fillStyle = b.color;
     ctx.moveTo(b.x, b.y);
-    ctx.fillRect(b.x, b.y, b.width, b.height);
+    //ctx.fillRect(b.x, b.y, b.width, b.height);
+    if (b.image) {
+      ctx.drawImage(b.image, b.x, b.y);
+    }
   };
   var draw_hr = function() {
     var x = hr.x;
@@ -384,5 +390,8 @@ $(function() {
     var img = new Image();
     img.src = "images/" + src;
     return img;
+  }
+  function randomEnemySprite() {
+    return assets.enemies[Math.floor(Math.random() * 2)];
   }
 });
