@@ -8,17 +8,44 @@ $(function() {
     {
       image: newImage("img_ship_1.png"),
       width: 30,
-      height: 30
+      height: 30,
+      hp: 1,
+      points: 100
     },
     {
       image: newImage("img_ship_2.png"),
       width: 30,
-      height: 30
+      height: 30,
+      hp: 1,
+      points: 100
     },
     {
       image: newImage("img_ship_3.png"),
       width: 34,
-      height: 30
+      height: 30,
+      hp: 2,
+      points: 150
+    },
+    {
+      image: newImage("img_ship_4.png"),
+      width: 64,
+      height: 64,
+      hp: 3,
+      points: 300
+    },
+    {
+      image: newImage("img_ship_5.png"),
+      width: 64,
+      height: 64,
+      hp: 3,
+      points: 350
+    },
+    {
+      image: newImage("img_ship_6.png"),
+      width: 47,
+      height: 50,
+      hp: 2,
+      points: 250
     }
   ];
   var settings = {
@@ -232,12 +259,16 @@ $(function() {
   };
   var kill_baddie = function(i) {
     var b = baddies[i];
-    player.score += 100;
-    b.color = "#cc0000";
-    b.speed = 0;
-    setTimeout(function() {
-      baddies.splice(i, 1);
-    }, 50);
+    //console.log(b.sprite.hp);
+    b.sprite.hp -= 1;
+    if (b.sprite.hp === 0) {
+      player.score += b.sprite.points;
+      b.color = "#cc0000";
+      b.speed = 0;
+      setTimeout(function() {
+        baddies.splice(i, 1);
+      }, 50);
+    }
   };
   var draw_bg = function() {
     ctx.beginPath();
@@ -408,6 +439,6 @@ $(function() {
     return img;
   }
   function randomEnemySprite() {
-    return assets.enemies[Math.floor(Math.random() * assets.enemies.length)];
+    return $.extend({}, assets.enemies[Math.floor(Math.random() * assets.enemies.length)]);
   }
 });
