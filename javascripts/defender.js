@@ -4,7 +4,23 @@ $(function() {
   var assets = {};
   assets.shot = newImage("img_shot.png");
   assets.man = newImage("img_man.png");
-  assets.enemies = [newImage("img_ship_1.png"), newImage("img_ship_2.png")];
+  assets.enemies = [
+    {
+      image: newImage("img_ship_1.png"),
+      width: 30,
+      height: 30
+    },
+    {
+      image: newImage("img_ship_2.png"),
+      width: 30,
+      height: 30
+    },
+    {
+      image: newImage("img_ship_3.png"),
+      width: 34,
+      height: 30
+    }
+  ];
   var settings = {
     canvas_width: canvas.clientWidth,
     canvas_height: canvas.clientHeight,
@@ -33,10 +49,8 @@ $(function() {
     x : settings.canvas_width + 20,
     y : 0,
     speed : settings.default_baddie_speed,
-    width: 30,
-    height: 30,
     color: "#00ff00",
-    image: randomEnemySprite(),
+    sprite: randomEnemySprite(),
     shot_interval : 1500,
     shot_fired : true,
     shot_initial_delay : 500
@@ -73,19 +87,18 @@ $(function() {
       if(settings.spawn_baddie) {
         if(!hr.dead) {
           var newBaddie = $.extend({}, baddie);
-          baddie.y = Math.random() * settings.canvas_height;
-          //console.log(baddie.y);
-          if (baddie.y > settings.canvas_height - hr.height / 2) {
-            baddie.y -= hr.height / 2;
-            //console.log("Too much " + baddie.y);
+          newBaddie.y = Math.random() * settings.canvas_height;
+          if (newBaddie.y > settings.canvas_height - hr.height / 2) {
+            newBaddie.y -= hr.height / 2;
           }
-          if (baddie.y < hr.height / 2) {
-            baddie.y += hr.height / 2;
-            //console.log("Too little " + baddie.y);
+          if (newBaddie.y < hr.height / 2) {
+            newBaddie.y += hr.height / 2;
           }
-          baddie.shot_interval = Math.random() * 4000 + 1000;
-          baddie.shot_initial_delay = Math.random() * 1500 + 1000;
-          baddie.image = randomEnemySprite();
+          newBaddie.shot_interval = Math.random() * 4000 + 1000;
+          newBaddie.shot_initial_delay = Math.random() * 1500 + 1000;
+          newBaddie.sprite = randomEnemySprite();
+          newBaddie.width = newBaddie.sprite.width;
+          newBaddie.height = newBaddie.sprite.height;
           baddies.push(newBaddie);
           settings.spawn_baddie = false;
           setTimeout(function() { settings.spawn_baddie = true; }, settings.spawn_rate);
@@ -275,11 +288,11 @@ $(function() {
   };
   var draw_baddie = function(b) {
     ctx.beginPath();
-    ctx.fillStyle = b.color;
+    //ctx.fillStyle = b.color;
     ctx.moveTo(b.x, b.y);
     //ctx.fillRect(b.x, b.y, b.width, b.height);
-    if (b.image) {
-      ctx.drawImage(b.image, b.x, b.y);
+    if (b.sprite.image) {
+      ctx.drawImage(b.sprite.image, b.x, b.y);
     }
   };
   var draw_hr = function() {
@@ -395,6 +408,6 @@ $(function() {
     return img;
   }
   function randomEnemySprite() {
-    return assets.enemies[Math.floor(Math.random() * 2)];
+    return assets.enemies[Math.floor(Math.random() * assets.enemies.length)];
   }
 });
