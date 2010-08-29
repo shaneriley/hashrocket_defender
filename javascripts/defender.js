@@ -60,15 +60,20 @@ $(function() {
     canvas_width: canvas.clientWidth,
     canvas_height: canvas.clientHeight,
     spawn_baddie : true,
-    spawn_rate : 2000,
+    spawn_rate : 3000,
     default_baddie_speed : 3,
     default_shot_speed : 30,
     pause: false,
     score: 0,
     lives: 3,
-    boss_trigger: 15000
+    level : 1,
+    level_interval : 5,
+    level_spawn_rate_increase : 600,
+    level_shot_interval_increase : 400,
+    baddie_count : 0,
+    boss_trigger: 5
   };
-  var player = $.extend({}, settings);
+  var instance = $.extend({}, settings);
   var hr = {
     x : 20,
     y : 0,
@@ -87,7 +92,7 @@ $(function() {
     speed : settings.default_baddie_speed,
     color: "#00ff00",
     sprite: randomEnemySprite(),
-    shot_interval : 1500,
+    shot_interval : 2500,
     shot_fired : true,
     shot_initial_delay : 500
   };
@@ -102,7 +107,7 @@ $(function() {
   this.onkeydown = this.onkeyup = function(e) {
     key[e.which] = (e.type == 'keydown');
     if((e.type == 'keydown') && (e.keyCode == 80)) {
-      settings.pause = !settings.pause;
+      instance.pause = !instance.pause;
       ctx.font = "bold 26px monospace";
       ctx.textAlign = "center";
       ctx.fillStyle = "white";
@@ -111,8 +116,8 @@ $(function() {
   };
   var run = function() {
     $(document).unbind("keypress.start_game");
-    settings.running_game = setInterval(function() {
-      if(settings.pause) { return; }
+    instance.running_game = setInterval(function() {
+      if(instance.pause) { return; }
       move_hr();
 
       if(!hr.shot_fired) {
@@ -120,10 +125,17 @@ $(function() {
           hr.shoot();
         }
       }
-      if (player.score <= settings.boss_trigger) {
-        if(settings.spawn_baddie) {
+      if (instance.level <= settings.boss_trigger) {
+        if(instance.spawn_baddie) {
           if(!hr.dead) {
             var newBaddie = $.extend({}, baddie);
+            instance.baddie_count ++;
+            if(instance.baddie_count > (instance.level * (instance.level_interval + (instance.level * 2)))) {
+              instance.level++;
+              baddie.shot_interval -= settings.level_shot_interval_increase;
+              instance.spawn_rate -= settings.level_spawn_rate_increase;
+              baddie.speed += 0.2;
+            }
             newBaddie.y = Math.random() * settings.canvas_height;
             if (newBaddie.y > settings.canvas_height - hr.height / 2) {
               newBaddie.y -= hr.height / 2;
@@ -137,11 +149,10 @@ $(function() {
             newBaddie.width = newBaddie.sprite.width;
             newBaddie.height = newBaddie.sprite.height;
             baddies.push(newBaddie);
-            settings.spawn_baddie = false;
+            instance.spawn_baddie = false;
             setTimeout(function() {
-              settings.spawn_baddie = true;
-              settings.spawn_rate > 500 ? settings.spawn_rate -= 20 : 1;
-            }, settings.spawn_rate);
+              instance.spawn_baddie = true;
+            }, instance.spawn_rate);
           }
         }
       }
@@ -177,7 +188,7 @@ $(function() {
         bs.x -= bs.speed;
         draw_baddie_shot(bs);
       }
-      if (player.score > settings.boss_trigger) {
+      if (instance.level > settings.boss_trigger) {
         drawBoss();
       }
       draw_hr();
@@ -255,12 +266,12 @@ $(function() {
   };
   var kill_hr = function() {
     hr.dead = true;
-    player.lives--;
+    instance.lives--;
     setTimeout(function() {
       hr.x = 20;
       hr.y = settings.canvas_height / 2 - hr.height / 2;
       hr.dead = false;
-      player.lives < 0 ? gameOver() : 1;
+      instance.lives < 0 ? gameOver() : 1;
     }, 1050);
     var original_y = hr.y;
     for(var i = 0; i < 10; i++) {
@@ -278,7 +289,7 @@ $(function() {
     var b = baddies[i];
     b.sprite.hp -= 1;
     if (b.sprite.hp === 0) {
-      player.score += b.sprite.points;
+      instance.score += b.sprite.points;
       b.color = "#cc0000";
       b.speed = 0;
       setTimeout(function() {
@@ -311,12 +322,14 @@ $(function() {
     ctx.fillStyle = "white";
     ctx.fillText("MANS:", 10, y);
     ctx.fillText("SCORE:", 120, y);
-    for (var i = 0; i < player.lives; i++) {
+    ctx.fillText("LEVEL:", 220, y);
+    for (var i = 0; i < instance.lives; i++) {
       ctx.drawImage(assets.man, i * 18 + 51, y - 11);
     }
     ctx.font = "bold" + font_style;
     ctx.fillStyle = "#ffff00";
-    ctx.fillText(player.score, 165, y);
+    ctx.fillText(instance.score, 165, y);
+    ctx.fillText(instance.level, 265, y);
   };
   var draw_shot = function(x, y) {
     ctx.beginPath();
@@ -332,9 +345,7 @@ $(function() {
   };
   var draw_baddie = function(b) {
     ctx.beginPath();
-    //ctx.fillStyle = b.color;
     ctx.moveTo(b.x, b.y);
-    //ctx.fillRect(b.x, b.y, b.width, b.height);
     if (b.sprite.image) {
       ctx.drawImage(b.sprite.image, b.x, b.y);
     }
@@ -381,9 +392,8 @@ $(function() {
     if (glow.change_opacity) {
       glow.change_opacity = false;
       setTimeout(function() {
-        glow.dir ? glow.opacity += .2 : glow.opacity -= .2;
+        glow.dir ? glow.opacity += 0.2 : glow.opacity -= 0.2;
         glow.opacity = Math.round(glow.opacity * 10) / 10;
-        console.log(glow.opacity);
         if (glow.opacity >= 1) { glow.dir = 0; }
         if (glow.opacity <= 0) { glow.dir = 1; }
         glow.change_opacity = true;
@@ -430,7 +440,8 @@ $(function() {
     });
   })();
   var gameOver = function() {
-    clearInterval(settings.running_game);
+    clearInterval(instance.running_game);
+    instance = $.extend({}, settings);
     ctx.clearRect(0, 0, settings.canvas_width, settings.canvas_height);
     draw_bg(function() {
       var cx = settings.canvas_width / 2;
@@ -448,12 +459,12 @@ $(function() {
       ctx.fillStyle = "#33cc33";
       ctx.textAlign = "right";
       ctx.font = fontStyle("40px");
-      ctx.fillText(player.score, cx + 125, 307);
+      ctx.fillText(instance.score, cx + 125, 307);
       ctx.textAlign = "center";
       ctx.font = fontStyle("18px");
       ctx.fillStyle = "white";
       ctx.fillText("Press Enter or Return to play again", cx, 350);
-      player = $.extend({}, settings);
+      instance = $.extend({}, settings);
       hr.shots = [];
       baddies = [];
       baddie_shots = [];
