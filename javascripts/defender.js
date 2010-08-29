@@ -172,8 +172,9 @@ $(function() {
       }
       for(i=0; i<baddies.length; i++) {
         var b = baddies[i];
-        if(b.x < 0) {
+        if((b.x + b.width) < 0) {
           baddies.splice(i, 1);
+          i--;
         } else {
           if(!hr.dead) {
             b.x -= b.speed;
