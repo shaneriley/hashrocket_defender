@@ -1,9 +1,17 @@
 $(function() {
   var canvas = $("canvas")[0],
       ctx = canvas.getContext("2d");
-  var assets = {};
-  assets.shot = newImage("img_shot.png");
-  assets.man = newImage("img_man.png");
+  var assets = {
+    shot: newImage("img_shot.png"),
+    man: newImage("img_man.png"),
+    boss: newImage("img_boss.png"),
+    boss_glow: {
+      image: newImage("img_boss_glow.png"),
+      opacity: 0,
+      dir: 1,
+      change_opacity: true
+    }
+  };
   assets.enemies = [
     {
       image: newImage("img_ship_1.png"),
@@ -57,7 +65,8 @@ $(function() {
     default_shot_speed : 30,
     pause: false,
     score: 0,
-    lives: 3
+    lives: 3,
+    boss_trigger: 15000
   };
   var player = $.extend({}, settings);
   var hr = {
@@ -67,7 +76,7 @@ $(function() {
     width : 74,
     height: 68,
     dead : false,
-    shot_interval : 400,
+    shot_interval : 100,
     shot_fired : false,
     shots : []
   };
@@ -111,24 +120,29 @@ $(function() {
           hr.shoot();
         }
       }
-      if(settings.spawn_baddie) {
-        if(!hr.dead) {
-          var newBaddie = $.extend({}, baddie);
-          newBaddie.y = Math.random() * settings.canvas_height;
-          if (newBaddie.y > settings.canvas_height - hr.height / 2) {
-            newBaddie.y -= hr.height / 2;
+      if (player.score <= settings.boss_trigger) {
+        if(settings.spawn_baddie) {
+          if(!hr.dead) {
+            var newBaddie = $.extend({}, baddie);
+            newBaddie.y = Math.random() * settings.canvas_height;
+            if (newBaddie.y > settings.canvas_height - hr.height / 2) {
+              newBaddie.y -= hr.height / 2;
+            }
+            if (newBaddie.y < hr.height / 2) {
+              newBaddie.y += hr.height / 2;
+            }
+            newBaddie.shot_interval = Math.random() * 4000 + 1000;
+            newBaddie.shot_initial_delay = Math.random() * 1500 + 1000;
+            newBaddie.sprite = randomEnemySprite();
+            newBaddie.width = newBaddie.sprite.width;
+            newBaddie.height = newBaddie.sprite.height;
+            baddies.push(newBaddie);
+            settings.spawn_baddie = false;
+            setTimeout(function() {
+              settings.spawn_baddie = true;
+              settings.spawn_rate > 500 ? settings.spawn_rate -= 20 : 1;
+            }, settings.spawn_rate);
           }
-          if (newBaddie.y < hr.height / 2) {
-            newBaddie.y += hr.height / 2;
-          }
-          newBaddie.shot_interval = Math.random() * 4000 + 1000;
-          newBaddie.shot_initial_delay = Math.random() * 1500 + 1000;
-          newBaddie.sprite = randomEnemySprite();
-          newBaddie.width = newBaddie.sprite.width;
-          newBaddie.height = newBaddie.sprite.height;
-          baddies.push(newBaddie);
-          settings.spawn_baddie = false;
-          setTimeout(function() { settings.spawn_baddie = true; }, settings.spawn_rate);
         }
       }
 
@@ -162,6 +176,9 @@ $(function() {
         var bs = baddie_shots[j];
         bs.x -= bs.speed;
         draw_baddie_shot(bs);
+      }
+      if (player.score > settings.boss_trigger) {
+        drawBoss();
       }
       draw_hr();
       draw_hud();
@@ -259,7 +276,6 @@ $(function() {
   };
   var kill_baddie = function(i) {
     var b = baddies[i];
-    //console.log(b.sprite.hp);
     b.sprite.hp -= 1;
     if (b.sprite.hp === 0) {
       player.score += b.sprite.points;
@@ -271,9 +287,6 @@ $(function() {
     }
   };
   var draw_bg = function() {
-    ctx.beginPath();
-    ctx.fillStyle = "#000000";
-    ctx.moveTo(0, 0);
     var img = new Image();
     var cb = arguments[0];
     img.src = "images/img_stars.jpg";
@@ -357,6 +370,25 @@ $(function() {
     ctx.lineTo(x += 15, y -= 15);
     ctx.lineTo(x -= 14, y -= 14);
     ctx.fill();
+  };
+  var drawBoss = function() {
+    var boss = assets.boss,
+        glow = assets.boss_glow;
+    ctx.globalAlpha = glow.opacity;
+    ctx.drawImage(glow.image, settings.canvas_width - glow.image.width - 20, (settings.canvas_height - glow.image.height) / 2);
+    ctx.globalAlpha = 1;
+    ctx.drawImage(boss, settings.canvas_width - boss.width - 20, (settings.canvas_height - boss.height) / 2);
+    if (glow.change_opacity) {
+      glow.change_opacity = false;
+      setTimeout(function() {
+        glow.dir ? glow.opacity += .2 : glow.opacity -= .2;
+        glow.opacity = Math.round(glow.opacity * 10) / 10;
+        console.log(glow.opacity);
+        if (glow.opacity >= 1) { glow.dir = 0; }
+        if (glow.opacity <= 0) { glow.dir = 1; }
+        glow.change_opacity = true;
+      }, 200);
+    }
   };
   var title_screen = (function() {
     ctx.clearRect(0, 0, settings.canvas_width, settings.canvas_height);
