@@ -447,7 +447,6 @@ $(function() {
   })();
   var gameOver = function() {
     clearInterval(instance.running_game);
-    instance = $.extend({}, settings);
     ctx.clearRect(0, 0, settings.canvas_width, settings.canvas_height);
     draw_bg(function() {
       var cx = settings.canvas_width / 2;
