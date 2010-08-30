@@ -129,13 +129,6 @@ $(function() {
         if(instance.spawn_baddie) {
           if(!hr.dead) {
             var newBaddie = $.extend({}, baddie);
-            instance.baddie_count ++;
-            if(instance.baddie_count > (instance.level * (instance.level_interval + (instance.level * 2)))) {
-              instance.level++;
-              baddie.shot_interval -= settings.level_shot_interval_increase;
-              instance.spawn_rate -= settings.level_spawn_rate_increase;
-              baddie.speed += 0.2;
-            }
             newBaddie.y = Math.random() * settings.canvas_height;
             if (newBaddie.y > settings.canvas_height - hr.height / 2) {
               newBaddie.y -= hr.height / 2;
@@ -143,8 +136,8 @@ $(function() {
             if (newBaddie.y < hr.height / 2) {
               newBaddie.y += hr.height / 2;
             }
-            newBaddie.shot_interval = Math.random() * 4000 + 1000;
-            newBaddie.shot_initial_delay = Math.random() * 1500 + 1000;
+            newBaddie.shot_interval = baddie.shot_interval + (Math.random() * 2000);
+            newBaddie.shot_initial_delay = baddie.shot_initial_delay + (Math.random() * 2000);
             newBaddie.sprite = randomEnemySprite();
             newBaddie.width = newBaddie.sprite.width;
             newBaddie.height = newBaddie.sprite.height;
@@ -175,6 +168,7 @@ $(function() {
         if((b.x + b.width) < 0) {
           baddies.splice(i, 1);
           i--;
+          check_level();
         } else {
           if(!hr.dead) {
             b.x -= b.speed;
@@ -259,7 +253,7 @@ $(function() {
       var newShot = $.extend({}, shot);
       newShot.x = b.x;
       newShot.y = b.y + (b.height/2);
-      newShot.speed = 8;
+      newShot.speed = shot.speed / 5;
       baddie_shots.push(newShot);
       b.shot_fired = true;
       setTimeout(function() { b.shot_fired = false;}, b.shot_interval);
@@ -287,6 +281,7 @@ $(function() {
     }
   };
   var kill_baddie = function(i) {
+    check_level();
     var b = baddies[i];
     b.sprite.hp -= 1;
     if (b.sprite.hp === 0) {
@@ -296,6 +291,16 @@ $(function() {
       setTimeout(function() {
         baddies.splice(i, 1);
       }, 50);
+    }
+  };
+  var check_level = function() {
+    instance.baddie_count ++;
+    if(instance.baddie_count > (instance.level * instance.level_interval)) {
+      instance.level++;
+      instance.level_interval += 2;
+      baddie.shot_interval -= settings.level_shot_interval_increase;
+      instance.spawn_rate -= settings.level_spawn_rate_increase;
+      baddie.speed += 0.2;
     }
   };
   var draw_bg = function() {
