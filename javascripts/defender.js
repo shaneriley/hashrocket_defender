@@ -281,10 +281,10 @@ $(function() {
     }
   };
   var kill_baddie = function(i) {
-    check_level();
     var b = baddies[i];
     b.sprite.hp -= 1;
     if (b.sprite.hp === 0) {
+      check_level();
       instance.score += b.sprite.points;
       b.color = "#cc0000";
       b.speed = 0;
